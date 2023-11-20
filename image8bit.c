@@ -15,7 +15,7 @@
 // 
 // 
 // 
-// Date: 11/11/2023 alooo 
+// Date: 11/11/2023 
 
 
 #include "image8bit.h"
