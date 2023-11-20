@@ -173,6 +173,20 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
   assert (height >= 0);
   assert (0 < maxval && maxval <= PixMax);
   // Insert your code here!
+  Image img = NULL;
+  int success =check( (img = (Image)malloc(sizeof(struct image))) != NULL, "Allocation failed" ) && check( (img->pixel = (uint8*)malloc(width*height*sizeof(uint8))) != NULL, "Allocation failed" );
+  if (success) {
+    img->width = width;
+    img->height = height;
+    img->maxval = maxval;
+    PIXMEM += (unsigned long)(width*height);  // count pixel memory accesses
+  } else {
+    errsave = errno;
+    ImageDestroy(&img);
+    errno = errsave;
+  }
+  return img;
+
 }
 
 /// Destroy the image pointed to by (*imgp).
@@ -183,6 +197,11 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
 void ImageDestroy(Image* imgp) { ///
   assert (imgp != NULL);
   // Insert your code here!
+  if (*imgp != NULL) {
+    free((*imgp)->pixel);
+    free(*imgp);
+    *imgp = NULL;
+  }
 }
 
 
@@ -322,6 +341,7 @@ int ImageValidRect(Image img, int x, int y, int w, int h) { ///
 static inline int G(Image img, int x, int y) {
   int index;
   // Insert your code here!
+
   assert (0 <= index && index < img->width*img->height);
   return index;
 }
@@ -356,7 +376,9 @@ void ImageSetPixel(Image img, int x, int y, uint8 level) { ///
 /// resulting in a "photographic negative" effect.
 void ImageNegative(Image img) { ///
   assert (img != NULL);
-  // Insert your code here!
+
+  
+
 }
 
 /// Apply threshold to image.
