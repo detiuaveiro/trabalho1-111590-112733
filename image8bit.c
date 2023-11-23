@@ -326,6 +326,7 @@ int ImageValidPos(Image img, int x, int y) { ///
 int ImageValidRect(Image img, int x, int y, int w, int h) { ///
   assert (img != NULL);
   // Insert your code here!
+  return x >= 0 && y >= 0 && (x + w) <= img->width && (y + h) <= img->height;
 }
 
 /// Pixel get & set operations
@@ -339,10 +340,9 @@ int ImageValidRect(Image img, int x, int y, int w, int h) { ///
 // This internal function is used in ImageGetPixel / ImageSetPixel. 
 // The returned index must satisfy (0 <= index < img->width*img->height)
 static inline int G(Image img, int x, int y) {
-  int index;
-  assert (img != NULL);       
-  assert (ImageValidPos(img, x, y));
-  index = y*img->width + x;
+  assert(img != NULL);
+  assert(ImageValidPos(img, x, y));
+  int index = y * img->width + x;
   assert (0 <= index && index < img->width*img->height);
   return index;
 }
@@ -375,10 +375,12 @@ void ImageSetPixel(Image img, int x, int y, uint8 level) { ///
 /// Transform image to negative image.
 /// This transforms dark pixels to light pixels and vice-versa,
 /// resulting in a "photographic negative" effect.
-void ImageNegative(Image img) { ///
+void ImageNegative(Image img) { 
   assert (img != NULL);
-
-  
+  // Insert your code here!
+  for (int i = 0; i < img->width*img->height; i++) {
+    img->pixel[i] = img->maxval - img->pixel[i];
+  }  
 
 }
 
@@ -388,6 +390,9 @@ void ImageNegative(Image img) { ///
 void ImageThreshold(Image img, uint8 thr) { ///
   assert (img != NULL);
   // Insert your code here!
+  for (int i = 0; i < img->width*img->height; i++) {
+    img->pixel[i] = img->pixel[i] < thr ? 0 : img->maxval;
+  }
 }
 
 /// Brighten image by a factor.
@@ -398,6 +403,9 @@ void ImageBrighten(Image img, double factor) { ///
   assert (img != NULL);
   // ? assert (factor >= 0.0);
   // Insert your code here!
+  for (int i = 0; i < img->width*img->height; i++) {
+    img->pixel[i] = img->pixel[i] * factor > img->maxval ? img->maxval : img->pixel[i] * factor;
+  }
 }
 
 
@@ -425,6 +433,12 @@ void ImageBrighten(Image img, double factor) { ///
 Image ImageRotate(Image img) { ///
   assert (img != NULL);
   // Insert your code here!
+  Image img2 = ImageCreate(img->height, img->width, img->maxval);
+  for (int i = 0; i < img->height; i++) {
+    for (int j = 0; j < img->width; j++) {
+      img2->pixel[G(img2, i, img->width - j - 1)] = img->pixel[G(img, j, i)];
+    }
+  }
 }
 
 /// Mirror an image = flip left-right.
@@ -437,6 +451,16 @@ Image ImageRotate(Image img) { ///
 Image ImageMirror(Image img) { ///
   assert (img != NULL);
   // Insert your code here!
+
+  Image img2 = ImageCreate(img->width, img->height, img->maxval);
+  for (int i = 0; i < img->height; i++) {
+    for (int j = 0; j < img->width; j++) {
+      img2->pixel[G(img2, j, i)] = img->pixel[G(img, img->width - j - 1, i)];
+    }
+  }
+  return img2;
+
+
 }
 
 /// Crop a rectangular subimage from img.
@@ -455,6 +479,12 @@ Image ImageCrop(Image img, int x, int y, int w, int h) { ///
   assert (img != NULL);
   assert (ImageValidRect(img, x, y, w, h));
   // Insert your code here!
+  Image img2 = ImageCreate(w, h, img->maxval);
+  for (int i = 0; i < h; i++) {
+    for (int j = 0; j < w; j++) { 
+      img2->pixel[G(img2, j, i)] = img->pixel[G(img, x + j, y + i)];
+    }
+  }
 }
 
 
@@ -469,6 +499,11 @@ void ImagePaste(Image img1, int x, int y, Image img2) { ///
   assert (img2 != NULL);
   assert (ImageValidRect(img1, x, y, img2->width, img2->height));
   // Insert your code here!
+  for (int i = 0; i < img2->height; i++) {
+    for (int j = 0; j < img2->width; j++) {
+      img1->pixel[G(img1, x + j, y + i)] = img2->pixel[G(img2, j, i)];
+    }
+  }
 }
 
 /// Blend an image into a larger image.
@@ -482,6 +517,12 @@ void ImageBlend(Image img1, int x, int y, Image img2, double alpha) { ///
   assert (img2 != NULL);
   assert (ImageValidRect(img1, x, y, img2->width, img2->height));
   // Insert your code here!
+  for (int i = 0; i < img2->height; i++) {
+    for (int j = 0; j < img2->width; j++) {
+      img1->pixel[G(img1, x + j, y + i)] = img1->pixel[G(img1, x + j, y + i)] * (1 - alpha) + img2->pixel[G(img2, j, i)] * alpha;
+    }
+  }
+
 }
 
 /// Compare an image to a subimage of a larger image.
