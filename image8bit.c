@@ -576,30 +576,56 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 /// Each pixel is substituted by the mean of the pixels in the rectangle
 /// [x-dx, x+dx]x[y-dy, y+dy].
 /// The image is changed in-place.
-void ImageBlur(Image img, int dx, int dy) { ///
-  // Insert your code here!
-  Image img2 = ImageCreate(img->width, img->height, img->maxval);
-  for (int i = 0; i < img->height; i++) {
-    for (int j = 0; j < img->width; j++) {
+void ImageBlur(Image img, int dx, int dy)
+{
+  // Precompute image size
+  int imgHeight = img->height;
+  int imgWidth = img->width;
+
+  // Create a temporary image to store the blurred values
+  Image img2 = ImageCreate(imgWidth, imgHeight, img->maxval);
+
+  // Perform the blurring operation
+  for (int i = 0; i < imgHeight; i++)
+  {
+    for (int j = 0; j < imgWidth; j++)
+    {
       int sum = 0;
       int count = 0;
-      for (int k = i - dy; k <= i + dy; k++) {
-        for (int l = j - dx; l <= j + dx; l++) {
-          if (ImageValidPos(img, l, k)) {
-            sum += img->pixel[G(img, l, k)];
+
+      // Calculate mean within the neighborhood
+      for (int k = i - dy; k <= i + dy; k++)
+      {
+        for (int l = j - dx; l <= j + dx; l++)
+        {
+          if (ImageValidPos(img, l, k))
+          {
+            int pixelValue = img->pixel[k * imgWidth + l]; 
+            sum += pixelValue;
             count++;
           }
         }
       }
-      img2->pixel[G(img2, j, i)] = sum / count;
-    }
-  }
-  for (int i = 0; i < img->height; i++) {
-    for (int j = 0; j < img->width; j++) {
-      img->pixel[G(img, j, i)] = img2->pixel[G(img2, j, i)];
-    }
-  }
-  ImageDestroy(&img2);
-  
-};
 
+      // Update pixel value in the temporary image
+      if (count > 0)
+      {
+        img2->pixel[i * imgWidth + j] = (int)(sum / (float)count + 0.5);
+      }
+      else
+      {
+        // If count is zero, keep the original pixel value
+        img2->pixel[i * imgWidth + j] = img->pixel[i * imgWidth + j];
+      }
+    }
+  }
+
+  // Update the original image with the blurred values
+  for (int i = 0; i < imgHeight * imgWidth; i++)
+  {
+    img->pixel[i] = img2->pixel[i];
+  }
+
+  // Destroy the temporary image
+  ImageDestroy(&img2);
+}
