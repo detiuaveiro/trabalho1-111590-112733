@@ -90,7 +90,7 @@ static char* errCause;
 /// the previous error cause).  It is not meant to be used in that situation!
 char* ImageErrMsg() { ///
   return errCause;
-}
+};
 
 
 // Defensive programming aids
@@ -139,7 +139,7 @@ char* ImageErrMsg() { ///
 static int check(int condition, const char* failmsg) {
   errCause = (char*)(condition ? "" : failmsg);
   return condition;
-}
+};
 
 
 /// Init Image library.  (Call once!)
@@ -149,7 +149,7 @@ void ImageInit(void) { ///
   InstrName[0] = "pixmem";  // InstrCount[0] will count pixel array acesses
   // Name other counters here...
   
-}
+};
 
 // Macros to simplify accessing instrumentation counters:
 #define PIXMEM InstrCount[0]
@@ -187,7 +187,7 @@ Image ImageCreate(int width, int height, uint8 maxval) { ///
   }
   return img;
 
-}
+};
 
 /// Destroy the image pointed to by (*imgp).
 ///   imgp : address of an Image variable.
@@ -202,7 +202,7 @@ void ImageDestroy(Image* imgp) { ///
     free(*imgp);
     *imgp = NULL;
   }
-}
+};
 
 
 /// PGM file operations
@@ -220,7 +220,7 @@ static int skipComments(FILE* f) {
     i++;
   }
   return i;
-}
+};
 
 /// Load a raw PGM file.
 /// Only 8 bit PGM files are accepted.
@@ -259,7 +259,7 @@ Image ImageLoad(const char* filename) { ///
   }
   if (f != NULL) fclose(f);
   return img;
-}
+};
 
 /// Save image to PGM file.
 /// On success, returns nonzero.
@@ -281,7 +281,7 @@ int ImageSave(Image img, const char* filename) { ///
   // Cleanup
   if (f != NULL) fclose(f);
   return success;
-}
+};
 
 
 /// Information queries
@@ -292,19 +292,19 @@ int ImageSave(Image img, const char* filename) { ///
 int ImageWidth(Image img) { ///
   assert (img != NULL);
   return img->width;
-}
+};
 
 /// Get image height
 int ImageHeight(Image img) { ///
   assert (img != NULL);
   return img->height;
-}
+};
 
 /// Get image maximum gray level
 int ImageMaxval(Image img) { ///
   assert (img != NULL);
   return img->maxval;
-}
+};
 
 /// Pixel stats
 /// Find the minimum and maximum gray levels in image.
@@ -314,20 +314,20 @@ int ImageMaxval(Image img) { ///
 void ImageStats(Image img, uint8* min, uint8* max) { ///
   assert (img != NULL);
   // Insert your code here!
-}
+};
 
 /// Check if pixel position (x,y) is inside img.
 int ImageValidPos(Image img, int x, int y) { ///
   assert (img != NULL);
   return (0 <= x && x < img->width) && (0 <= y && y < img->height);
-}
+};
 
 /// Check if rectangular area (x,y,w,h) is completely inside img.
 int ImageValidRect(Image img, int x, int y, int w, int h) { ///
   assert (img != NULL);
   // Insert your code here!
   return x >= 0 && y >= 0 && (x + w) <= img->width && (y + h) <= img->height;
-}
+};
 
 /// Pixel get & set operations
 
@@ -345,7 +345,7 @@ static inline int G(Image img, int x, int y) {
   int index = y * img->width + x;
   assert (0 <= index && index < img->width*img->height);
   return index;
-}
+};
 
 /// Get the pixel (level) at position (x,y).
 uint8 ImageGetPixel(Image img, int x, int y) { ///
@@ -353,15 +353,15 @@ uint8 ImageGetPixel(Image img, int x, int y) { ///
   assert (ImageValidPos(img, x, y));
   PIXMEM += 1;  // count one pixel access (read)
   return img->pixel[G(img, x, y)];
-} 
+};
 
 /// Set the pixel at position (x,y) to new level.
 void ImageSetPixel(Image img, int x, int y, uint8 level) { ///
   assert (img != NULL);
   assert (ImageValidPos(img, x, y));
-  PIXMEM += 1;  // count one pixel access (store)
+  PIXMEM+= 1;  // count one pixel access (store)
   img->pixel[G(img, x, y)] = level;
-} 
+};
 
 
 /// Pixel transformations
@@ -382,7 +382,7 @@ void ImageNegative(Image img) {
     img->pixel[i] = img->maxval - img->pixel[i];
   }  
 
-}
+};
 
 /// Apply threshold to image.
 /// Transform all pixels with level<thr to black (0) and
@@ -393,21 +393,23 @@ void ImageThreshold(Image img, uint8 thr) { ///
   for (int i = 0; i < img->width*img->height; i++) {
     img->pixel[i] = img->pixel[i] < thr ? 0 : img->maxval;
   }
-}
+};
 
 /// Brighten image by a factor.
 /// Multiply each pixel level by a factor, but saturate at maxval.
 /// This will brighten the image if factor>1.0 and
 /// darken the image if factor<1.0.
-void ImageBrighten(Image img, double factor) { ///
-  assert (img != NULL);
-  // ? assert (factor >= 0.0);
+void ImageBrighten(Image img, double factor)
+{ ///
+  assert(img != NULL);
+  assert(factor >= 0.0);
   // Insert your code here!
+  // soma 0.5 ao valor do pixel*factor e transforma em int para arredondar
   for (int i = 0; i < img->width*img->height; i++) {
-    img->pixel[i] = img->pixel[i] * factor > img->maxval ? img->maxval : img->pixel[i] * factor;
+    img->pixel[i] = (int)(img->pixel[i] * factor + 0.5) > img->maxval ? img->maxval : (int)(img->pixel[i] * factor + 0.5);
   }
-}
 
+};
 
 /// Geometric transformations
 
@@ -439,7 +441,8 @@ Image ImageRotate(Image img) { ///
       img2->pixel[G(img2, i, img->width - j - 1)] = img->pixel[G(img, j, i)];
     }
   }
-}
+  return img2;
+};
 
 /// Mirror an image = flip left-right.
 /// Returns a mirrored version of the image.
@@ -461,7 +464,7 @@ Image ImageMirror(Image img) { ///
   return img2;
 
 
-}
+};
 
 /// Crop a rectangular subimage from img.
 /// The rectangle is specified by the top left corner coords (x, y) and
@@ -485,7 +488,8 @@ Image ImageCrop(Image img, int x, int y, int w, int h) { ///
       img2->pixel[G(img2, j, i)] = img->pixel[G(img, x + j, y + i)];
     }
   }
-}
+  return img2;
+};
 
 
 /// Operations on two images
@@ -504,7 +508,7 @@ void ImagePaste(Image img1, int x, int y, Image img2) { ///
       img1->pixel[G(img1, x + j, y + i)] = img2->pixel[G(img2, j, i)];
     }
   }
-}
+};
 
 /// Blend an image into a larger image.
 /// Blend img2 into position (x, y) of img1.
@@ -517,13 +521,14 @@ void ImageBlend(Image img1, int x, int y, Image img2, double alpha) { ///
   assert (img2 != NULL);
   assert (ImageValidRect(img1, x, y, img2->width, img2->height));
   // Insert your code here!
+  // tenho de somar 0.5 e transformar em int para arredondar o valor do pixel
   for (int i = 0; i < img2->height; i++) {
     for (int j = 0; j < img2->width; j++) {
-      img1->pixel[G(img1, x + j, y + i)] = img1->pixel[G(img1, x + j, y + i)] * (1 - alpha) + img2->pixel[G(img2, j, i)] * alpha;
+      img1->pixel[G(img1, x + j, y + i)] = (int)(img1->pixel[G(img1, x + j, y + i)] * (1 - alpha) + img2->pixel[G(img2, j, i)] * alpha + 0.5) > img1->maxval ? img1->maxval : (int)(img1->pixel[G(img1, x + j, y + i)] * (1 - alpha) + img2->pixel[G(img2, j, i)] * alpha + 0.5);
     }
-  }
+  };
 
-}
+};
 
 /// Compare an image to a subimage of a larger image.
 /// Returns 1 (true) if img2 matches subimage of img1 at pos (x, y).
@@ -533,7 +538,15 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   assert (img2 != NULL);
   assert (ImageValidPos(img1, x, y));
   // Insert your code here!
-}
+  for (int i = 0; i < img2->height; i++) {
+    for (int j = 0; j < img2->width; j++) {
+      if (img1->pixel[G(img1, x + j, y + i)] != img2->pixel[G(img2, j, i)]) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+};
 
 /// Locate a subimage inside another image.
 /// Searches for img2 inside img1.
@@ -543,7 +556,18 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
   assert (img1 != NULL);
   assert (img2 != NULL);
   // Insert your code here!
-}
+  for (int i = 0; i < img1->height - img2->height; i++) {
+    for (int j = 0; j < img1->width - img2->width; j++) {
+      if (ImageMatchSubImage(img1, j, i, img2)) {
+        *px = j;
+        *py = i;
+        return 1;
+      }
+    }
+  }
+  return 0;
+
+};
 
 
 /// Filtering
@@ -554,5 +578,28 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 /// The image is changed in-place.
 void ImageBlur(Image img, int dx, int dy) { ///
   // Insert your code here!
-}
+  Image img2 = ImageCreate(img->width, img->height, img->maxval);
+  for (int i = 0; i < img->height; i++) {
+    for (int j = 0; j < img->width; j++) {
+      int sum = 0;
+      int count = 0;
+      for (int k = i - dy; k <= i + dy; k++) {
+        for (int l = j - dx; l <= j + dx; l++) {
+          if (ImageValidPos(img, l, k)) {
+            sum += img->pixel[G(img, l, k)];
+            count++;
+          }
+        }
+      }
+      img2->pixel[G(img2, j, i)] = sum / count;
+    }
+  }
+  for (int i = 0; i < img->height; i++) {
+    for (int j = 0; j < img->width; j++) {
+      img->pixel[G(img, j, i)] = img2->pixel[G(img2, j, i)];
+    }
+  }
+  ImageDestroy(&img2);
+  
+};
 
