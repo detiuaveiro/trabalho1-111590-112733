@@ -146,13 +146,15 @@ static int check(int condition, const char* failmsg) {
 /// Currently, simply calibrate instrumentation and set names of counters.
 void ImageInit(void) { ///
   InstrCalibrate();
-  InstrName[0] = "pixmem";  // InstrCount[0] will count pixel array acesses
+  InstrName[0] = "pixmem";
+  InstrName[1]= "op";  // InstrCount[0] will count pixel array acesses
   // Name other counters here...
   
 };
 
 // Macros to simplify accessing instrumentation counters:
 #define PIXMEM InstrCount[0]
+#define op InstrCount[1]
 // Add more macros here...
 
 // TIP: Search for PIXMEM or InstrCount to see where it is incremented!
@@ -540,7 +542,9 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   // Insert your code here!
   for (int i = 0; i < img2->height; i++) {
     for (int j = 0; j < img2->width; j++) {
+      op+=1;
       if (img1->pixel[G(img1, x + j, y + i)] != img2->pixel[G(img2, j, i)]) {
+        
         return 0;
       }
     }
@@ -561,6 +565,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
       if (ImageMatchSubImage(img1, j, i, img2)) {
         *px = j;
         *py = i;
+        printf("%ld",op);
         return 1;
       }
     }
@@ -621,10 +626,7 @@ void ImageBlur(Image img, int dx, int dy)
   }
 
   // Update the original image with the blurred values
-  for (int i = 0; i < imgHeight * imgWidth; i++)
-  {
-    img->pixel[i] = img2->pixel[i];
-  }
+  img = img2;
 
   // Destroy the temporary image
   ImageDestroy(&img2);
