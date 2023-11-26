@@ -346,6 +346,7 @@ static inline int G(Image img, int x, int y) {
   assert(ImageValidPos(img, x, y));
   int index = y * img->width + x;
   assert (0 <= index && index < img->width*img->height);
+  PIXMEM+=1;
   return index;
 };
 
@@ -543,7 +544,6 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   for (int i = 0; i < img2->height ; i++) {
     for (int j = 0; j < img2->width ; j++) {
       op+=1;
-      PIXMEM += 2;
       if (img1->pixel[G(img1, x + j, y + i)] != img2->pixel[G(img2, j, i)])    {        
         return 0;
       }
