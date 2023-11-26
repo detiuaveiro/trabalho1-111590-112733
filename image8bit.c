@@ -540,8 +540,8 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   assert (img2 != NULL);
   assert (ImageValidPos(img1, x, y));
   // Insert your code here!
-  for (int i = 0; i < img2->height; i++) {
-    for (int j = 0; j < img2->width; j++) {
+  for (int i = 0; i < img2->height ; i++) {
+    for (int j = 0; j < img2->width ; j++) {
       op+=1;
       if (img1->pixel[G(img1, x + j, y + i)] != img2->pixel[G(img2, j, i)]) {
         
@@ -565,7 +565,6 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
       if (ImageMatchSubImage(img1, j, i, img2)) {
         *px = j;
         *py = i;
-        printf("%ld",op);
         return 1;
       }
     }
@@ -574,6 +573,17 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
 
 };
 
+int max(int a, int b)
+{
+  return (a > b) ? a : b;
+  
+}
+
+// Função auxiliar para encontrar o mínimo entre dois valores
+int min(int a, int b)
+{
+  return (a < b) ? a : b;
+}
 
 /// Filtering
 
@@ -588,46 +598,48 @@ void ImageBlur(Image img, int dx, int dy)
   int imgWidth = img->width;
 
   // Create a temporary image to store the blurred values
-  Image img2 = ImageCreate(imgWidth, imgHeight, img->maxval);
 
   // Perform the blurring operation
+  int *sumMatrix = (int*)malloc(imgHeight*imgWidth * sizeof(int));
+
+  // Calcular somas acumuladas
   for (int i = 0; i < imgHeight; i++)
   {
     for (int j = 0; j < imgWidth; j++)
     {
-      int sum = 0;
-      int count = 0;
-
-      // Calculate mean within the neighborhood
-      for (int k = i - dy; k <= i + dy; k++)
-      {
-        for (int l = j - dx; l <= j + dx; l++)
-        {
-          if (ImageValidPos(img, l, k))
-          {
-            int pixelValue = img->pixel[k * imgWidth + l]; 
-            sum += pixelValue;
-            count++;
-          }
-        }
-      }
-
-      // Update pixel value in the temporary image
-      if (count > 0)
-      {
-        img2->pixel[i * imgWidth + j] = (int)(sum / (float)count + 0.5);
-      }
-      else
-      {
-        // If count is zero, keep the original pixel value
-        img2->pixel[i * imgWidth + j] = img->pixel[i * imgWidth + j];
-      }
+      int sum = img->pixel[i * imgWidth + j];
+      if (i > 0)
+        sum += sumMatrix[(i - 1) * imgWidth + j];
+      if (j > 0)
+        sum += sumMatrix[i * imgWidth + j - 1];
+      if (i > 0 && j > 0)
+        sum -= sumMatrix[(i - 1) * imgWidth + j - 1];
+      sumMatrix[i * imgWidth + j] = sum;
     }
   }
 
-  // Update the original image with the blurred values
-  img = img2;
+  // Aplicar o filtro de blur
+  for (int i = 0; i < imgHeight; i++)
+  {
+    for (int j = 0; j < imgWidth; j++)
+    {
+      int x1 = max(j - dx, 0);
+      int y1 = max(i - dy, 0);
+      int x2 = min(j + dx, imgWidth - 1);
+      int y2 = min(i + dy, imgHeight - 1);
 
-  // Destroy the temporary image
-  ImageDestroy(&img2);
+      int sum = sumMatrix[y2 * imgWidth + x2];
+      if (y1 > 0)
+        sum -= sumMatrix[(y1 - 1) * imgWidth + x2];
+      if (x1 > 0)
+        sum -= sumMatrix[y2 * imgWidth + x1 - 1];
+      if (y1 > 0 && x1 > 0)
+        sum += sumMatrix[(y1 - 1) * imgWidth + x1 - 1];
+
+      int count = (x2 - x1 + 1) * (y2 - y1 + 1);
+      img->pixel[i * imgWidth + j] = (uint8)(sum / (float) count +0.5 );
+    }
+  }
+
+  free(sumMatrix);
 }
