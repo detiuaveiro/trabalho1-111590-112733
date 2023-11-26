@@ -543,8 +543,8 @@ int ImageMatchSubImage(Image img1, int x, int y, Image img2) { ///
   for (int i = 0; i < img2->height ; i++) {
     for (int j = 0; j < img2->width ; j++) {
       op+=1;
-      if (img1->pixel[G(img1, x + j, y + i)] != img2->pixel[G(img2, j, i)]) {
-        
+      PIXMEM += 2;
+      if (img1->pixel[G(img1, x + j, y + i)] != img2->pixel[G(img2, j, i)])    {        
         return 0;
       }
     }
@@ -569,6 +569,7 @@ int ImageLocateSubImage(Image img1, int* px, int* py, Image img2) { ///
       }
     }
   }
+  
   return 0;
 
 };
@@ -585,9 +586,9 @@ int min(int a, int b)
   return (a < b) ? a : b;
 }
 
-/// Filtering
+///
 
-/// Blur an image by a applying a (2dx+1)x(2dy+1) mean filter.
+/// Blur an image by applying a (2dx+1)x(2dy+1) mean filter.
 /// Each pixel is substituted by the mean of the pixels in the rectangle
 /// [x-dx, x+dx]x[y-dy, y+dy].
 /// The image is changed in-place.
@@ -597,10 +598,9 @@ void ImageBlur(Image img, int dx, int dy)
   int imgHeight = img->height;
   int imgWidth = img->width;
 
-  // Create a temporary image to store the blurred values
-
   // Perform the blurring operation
-  int *sumMatrix = (int*)malloc(imgHeight*imgWidth * sizeof(int));
+  int *sumMatrix = (int *)malloc(imgHeight * imgWidth * sizeof(int));
+
 
   // Calcular somas acumuladas
   for (int i = 0; i < imgHeight; i++)
@@ -608,12 +608,22 @@ void ImageBlur(Image img, int dx, int dy)
     for (int j = 0; j < imgWidth; j++)
     {
       int sum = img->pixel[i * imgWidth + j];
+      PIXMEM++; // Increment the pixel memory access counter
       if (i > 0)
+      {
         sum += sumMatrix[(i - 1) * imgWidth + j];
+        PIXMEM++;
+      }
       if (j > 0)
+      {
         sum += sumMatrix[i * imgWidth + j - 1];
+        PIXMEM++;
+      }
       if (i > 0 && j > 0)
+      {
         sum -= sumMatrix[(i - 1) * imgWidth + j - 1];
+        PIXMEM++;
+      }
       sumMatrix[i * imgWidth + j] = sum;
     }
   }
@@ -629,15 +639,25 @@ void ImageBlur(Image img, int dx, int dy)
       int y2 = min(i + dy, imgHeight - 1);
 
       int sum = sumMatrix[y2 * imgWidth + x2];
+      PIXMEM++;
       if (y1 > 0)
+      {
         sum -= sumMatrix[(y1 - 1) * imgWidth + x2];
+        PIXMEM++;
+      }
       if (x1 > 0)
+      {
         sum -= sumMatrix[y2 * imgWidth + x1 - 1];
+        PIXMEM++;
+      }
       if (y1 > 0 && x1 > 0)
+      {
         sum += sumMatrix[(y1 - 1) * imgWidth + x1 - 1];
+        PIXMEM++;
+      }
 
       int count = (x2 - x1 + 1) * (y2 - y1 + 1);
-      img->pixel[i * imgWidth + j] = (uint8)(sum / (float) count +0.5 );
+      img->pixel[i * imgWidth + j] = (uint8)(sum / (float)count + 0.5);
     }
   }
 
