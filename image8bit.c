@@ -608,7 +608,7 @@ void ImageBlur(Image img, int dx, int dy)
     for (int j = 0; j < imgWidth; j++)
     {
       int sum = img->pixel[i * imgWidth + j];
-      PIXMEM++; // Increment the pixel memory access counter
+      PIXMEM++; 
       if (i > 0)
       {
         sum += sumMatrix[(i - 1) * imgWidth + j];
